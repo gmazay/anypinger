@@ -28,7 +28,7 @@ $sth->execute || die print $sth->errstr();
 while (my($k,$v) = $sth->fetchrow_array) { $dev{$k} = $v; }
 $sth->finish;
 
-# Создать событийную мошыну
+# Создать событийную машину
 my $done = AnyEvent->condvar;
 
 # Создать пул воркеров
@@ -42,7 +42,7 @@ my $pool = AnyEvent::Fork
 		idle => 0,              # Количество воркеров при простое
 		load => 1,              # Размер очереди воркера
 
-		on_destroy => sub { $dbh->disconnect; $done->send; } # $done->send - выход из мошыны
+		on_destroy => sub { $dbh->disconnect; $done->send; } # $done->send - выход из машины
 	);
 
 
@@ -60,5 +60,5 @@ foreach my $ke (keys %dev) {
 
 undef $pool;
  
-# Перейти в режим блокирующего ожидания событий (запуск мошыны)
+# Перейти в режим блокирующего ожидания событий (запуск машины)
 $done->recv;
