@@ -10,8 +10,8 @@ use warnings;
 use AnyEvent;
 use AnyEvent::Fork;
 use AnyEvent::Fork::Pool;
-
-use lib substr($0,0,-13); # Change to "use lib '/dir/of/cfg'"
+use Dir::Self;
+use lib __DIR__;
 use cfg;
 
 
@@ -23,8 +23,8 @@ my %dev;                  # Хеш под статусы хостов (keys - IP
 
 my $dbh = q_connect('localhost');
 
-my $sth = $dbh->prepare("select ip,st from devices") || die print $dbh->errstr();
-$sth->execute || die print $sth->errstr();
+my $sth = $dbh->prepare("SELECT ip, st FROM devices") || die $dbh->errstr();
+$sth->execute || die $sth->errstr();
 while ( my($k,$v) = $sth->fetchrow_array ) { $dev{$k} = $v; }
 $sth->finish;
 
@@ -47,13 +47,13 @@ my $pool = AnyEvent::Fork
 
 
 # Набить в пул задачи
-foreach my $ke (keys %dev) {
-    $pool->($ke, sub {
-        my $st = shift;
-        if( $st ne $dev{$ke} ){
-            $dbh->do("update devices set st='$st' where address='$ke'") || die print $dbh->errstr;
+foreach my $key (keys %dev) {
+    $pool->($key, sub {
+        my $status = shift;
+        if( $status ne $dev{$key} ){
+            $dbh->do("UPDATE devices SET st=? WHERE address=?", undef, $status, $key) || die $dbh->errstr;
         }
-        print "$ke : $dev{$ke} -> $st\n";
+        print "$key : $dev{$key} -> $status\n";
     });
 };
 
