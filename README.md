@@ -2,7 +2,7 @@
 **Asynchronous multiprocessing pinger**
 
 
-**Dependencyes:**
+**Dependencies:**
 ```
 AnyEvent
 AnyEvent::Fork
