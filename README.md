@@ -1,26 +1,30 @@
 # anypinger
-**Asynchronous multiprocessing pinger
+**Asynchronous multiprocessing pinger**
 
 
-**Dependencyes:
-*AnyEvent
-*AnyEvent::Fork
-*AnyEvent::Fork::Pool
-*Net::Ping
-*DBI
-*Config::General
-*Getopt::Long
-*Dir::Self
-*Module::Build
+**Dependencyes:**
+...
+AnyEvent
+AnyEvent::Fork
+AnyEvent::Fork::Pool
+Net::Ping
+DBI
+Config::General
+Getopt::Long
+Dir::Self
+Module::Build
+...
 
-
-**Building & installing modules:
+**Building & installing modules:**
+...
 perl Builder.PL
 ./Build installdeps
 ./Build manifest
 ./Build test
 ./Build install
+...
 
-
-**Start process:
+**Run:**
+...
 ./scripts/anypinger.pl -c anypinger.conf
+...
