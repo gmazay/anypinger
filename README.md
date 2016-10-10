@@ -3,7 +3,7 @@
 
 
 **Dependencyes:**
-...
+```
 AnyEvent
 AnyEvent::Fork
 AnyEvent::Fork::Pool
@@ -13,18 +13,18 @@ Config::General
 Getopt::Long
 Dir::Self
 Module::Build
-...
+```
 
 **Building & installing modules:**
-...
+```
 perl Builder.PL
 ./Build installdeps
 ./Build manifest
 ./Build test
 ./Build install
-...
+```
 
 **Run:**
-...
+```
 ./scripts/anypinger.pl -c anypinger.conf
-...
+```
