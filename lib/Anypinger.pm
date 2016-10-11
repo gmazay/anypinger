@@ -1,7 +1,5 @@
 package Anypinger;
-use Exporter();
-@ISA = qw(Exporter);
-@EXPORT = qw(&db_connect &get_hosts &do);
+
 use strict;
 use warnings;
 
@@ -10,19 +8,25 @@ use AnyEvent::Fork;
 use AnyEvent::Fork::Pool;
 use DBI;
 
-use version; our $VERSION = 'v0.2.0';
+use version; our $VERSION = 'v0.3.0';
+
+sub new {
+	my ( $class, $conf ) = @_;
+	return bless +{ conf => $conf }, $class;
+}
 
 sub db_connect {
-	my $conf = shift;
-	my $dbh = DBI->connect( $conf->{DB}->{dsn}, $conf->{DB}->{user}, $conf->{DB}->{password}, $conf->{DB}->{params} ) || die DBI::errstr();
+	my $self = shift;
+	my $dbh = DBI->connect( $self->{conf}->{DB}->{dsn}, $self->{conf}->{DB}->{user}, $self->{conf}->{DB}->{password},
+						   $self->{conf}->{DB}->{params} ) || die DBI::errstr();
 	
 	return $dbh;
 }
 
 sub get_hosts {
-	my ($conf, $dbh) = @_;
+	my ($self, $dbh) = @_;
 	my $hosts = +{};
-	my $sth = $dbh->prepare( $conf->{query_select} ) || die $dbh->errstr();
+	my $sth = $dbh->prepare( $self->{conf}->{query_select} ) || die $dbh->errstr();
 	$sth->execute || die $sth->errstr();
 	while ( my($k,$v) = $sth->fetchrow_array ) { $hosts->{$k} = $v; }
 	$sth->finish;
@@ -31,11 +35,11 @@ sub get_hosts {
 }
 
 sub do {
-	my (%args) = @_;
-	my ($conf, $mod, $sub, $hosts, $dbh) = @args{ qw/conf module sub hosts dbh/ };
-	my $num_proc = $conf->{num_proc} || 7;
-	$ENV{ping_proto} = $conf->{ping_proto} || 'tcp';
-	$ENV{ping_timeout} = $conf->{ping_timeout} || 3;
+	my ( $self, %args) = @_;
+	my ($mod, $sub, $hosts, $dbh) = @args{ qw/module sub hosts dbh/ };
+	my $num_proc = $self->{conf}->{num_proc} || 7;
+	$ENV{ping_proto} = $self->{conf}->{ping_proto} || 'tcp';
+	$ENV{ping_timeout} = $self->{conf}->{ping_timeout} || 3;
 	my $res = '';
 	# Создать событийную машину
 	my $done = AnyEvent->condvar;
@@ -60,7 +64,7 @@ sub do {
 		$pool->($key, sub {
 			my $status = shift;
 			if( $status ne $hosts->{$key} ){
-				$dbh->do( $conf->{query_update}, undef, $status, $key ) || die $dbh->errstr;
+				$dbh->do( $self->{conf}->{query_update}, undef, $status, $key ) || die $dbh->errstr;
 			}
 			$res .= "$key : $hosts->{$key} -> $status\n";
 		});
