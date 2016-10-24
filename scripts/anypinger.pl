@@ -17,8 +17,6 @@ use Dir::Self;
 use lib __DIR__.'/../lib';
 use Anypinger;
 
-my $mod = 'Worker';                 # Модуль воркера (Worker.pm)
-my $sub = 'ping';                   # Функция воркера
 my $config_file;
 
 my $opt = GetOptions(
@@ -29,6 +27,9 @@ usage_exit() unless (defined $config_file);
 sub usage_exit { print "Usage: $0 --config={CONFIG_FILE}\n"; exit; }
 
 my $conf = +{ Config::General->new($config_file)->getall() };
+
+my $mod = $conf->{worker_module} || 'Pinger';                 # Модуль воркера (Pinger.pm)
+my $sub = $conf->{worker_sub}    || 'ping';                   # Функция воркера
 
 my $ap = Anypinger->new($conf);
 

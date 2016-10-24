@@ -8,17 +8,19 @@ use AnyEvent::Fork;
 use AnyEvent::Fork::Pool;
 use DBI;
 
-use version; our $VERSION = 'v0.3.0';
+use version; our $VERSION = 'v0.4.0';
 
 sub new {
 	my ( $class, $conf ) = @_;
-	return bless +{ conf => $conf }, $class;
+	no strict 'refs';
+	*{__PACKAGE__ . '::' . "conf"} = sub {return $conf;};
+	return bless +{}, $class;
 }
 
 sub db_connect {
 	my $self = shift;
-	my $dbh = DBI->connect( $self->{conf}->{DB}->{dsn}, $self->{conf}->{DB}->{user}, $self->{conf}->{DB}->{password},
-						   $self->{conf}->{DB}->{params} ) || die DBI::errstr();
+	my $dbh = DBI->connect( $self->conf->{DB}->{dsn}, $self->conf->{DB}->{user}, $self->conf->{DB}->{password},
+						   $self->conf->{DB}->{params} ) || die DBI::errstr();
 	
 	return $dbh;
 }
@@ -26,7 +28,7 @@ sub db_connect {
 sub get_hosts {
 	my ($self, $dbh) = @_;
 	my $hosts = +{};
-	my $sth = $dbh->prepare( $self->{conf}->{query_select} ) || die $dbh->errstr();
+	my $sth = $dbh->prepare( $self->conf->{query_select} ) || die $dbh->errstr();
 	$sth->execute || die $sth->errstr();
 	while ( my($k,$v) = $sth->fetchrow_array ) { $hosts->{$k} = $v; }
 	$sth->finish;
@@ -37,9 +39,9 @@ sub get_hosts {
 sub do {
 	my ( $self, %args) = @_;
 	my ($mod, $sub, $hosts, $dbh) = @args{ qw/module sub hosts dbh/ };
-	my $num_proc = $self->{conf}->{num_proc} || 7;
-	$ENV{ping_proto} = $self->{conf}->{ping_proto} || 'tcp';
-	$ENV{ping_timeout} = $self->{conf}->{ping_timeout} || 3;
+	my $num_proc = $self->conf->{num_proc} || 7;
+	$ENV{ping_proto} = $self->conf->{ping_proto} || 'tcp';
+	$ENV{ping_timeout} = $self->conf->{ping_timeout} || 3;
 	my $res = '';
 	# Создать событийную машину
 	my $done = AnyEvent->condvar;
@@ -64,7 +66,7 @@ sub do {
 		$pool->($key, sub {
 			my $status = shift;
 			if( $status ne $hosts->{$key} ){
-				$dbh->do( $self->{conf}->{query_update}, undef, $status, $key ) || die $dbh->errstr;
+				$dbh->do( $self->conf->{query_update}, undef, $status, $key ) || die $dbh->errstr;
 			}
 			$res .= "$key : $hosts->{$key} -> $status\n";
 		});

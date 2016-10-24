@@ -10,7 +10,7 @@ use Dir::Self;
 use lib __DIR__.'/../lib';
 use Anypinger;
 
-my $mod = 'Worker';
+my $mod = 'Pinger';
 my $sub = 'ping';
 my $config_file = __DIR__.'/../t/anypinger.conf';
 
